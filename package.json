@@ -1,0 +1,24 @@
+{
+    "name": "receptor",
+    "description": "",
+    "version": "0.0.1",
+    "homepage": "http://github.com/mah0x211/node-receptor",
+    "main": "./receptor",
+    "engines": {
+        "node": ">= 0.4.7"
+    },
+    "maintainers": [
+        {
+            "name": "Masatoshi Teruya",
+            "email": "mah0x211@gmail",
+            "web": "http://kontext.jp/"
+        }
+    ],
+    "dependencies": {
+        "mime": ">= 1.2.1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "http://github.com/mah0x211/node-receptor.git"
+    }
+}
