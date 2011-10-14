@@ -1,7 +1,7 @@
 {
     "name": "receptor",
     "description": "",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "homepage": "http://github.com/mah0x211/node-receptor",
     "main": "./receptor",
     "engines": {

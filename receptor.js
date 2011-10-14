@@ -153,12 +153,12 @@ function Receptor( app, confpath, rootpath )
 				// set Timeout event
 				if( odata.conf.Timeout ){
 					r.timeout = setTimeout( function(){
-						self.RequestClose( r, STATUS.REQUEST_TIME_OUT );
+						self.outgoing( r, STATUS.REQUEST_TIME_OUT );
 					}, odata.conf.Timeout );
 				}
 				// check LimitRequestLine
 				if( req.url.length > odata.conf.LimitRequestLine ){
-					self.RequestClose( r, STATUS.REQUEST_URI_TOO_LARGE );
+					self.outgoing( r, STATUS.REQUEST_URI_TOO_LARGE );
 				}
 				else {
 					// translate name
@@ -226,7 +226,7 @@ function Receptor( app, confpath, rootpath )
 	// });
 	// defalut graceful response: 503 SERVICE UNAVAILABLE
 	this.cbGraceful = function( r ){
-		r.server.RequestClose( r, STATUS.SERVICE_UNAVAILABLE );
+		r.server.outgoing( r, STATUS.SERVICE_UNAVAILABLE );
 	};
 	
 	// server setup
