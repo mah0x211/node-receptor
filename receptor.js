@@ -139,7 +139,7 @@ function Receptor( app, confpath, rootpath )
             
             // server will stop
             if( odata.graceful ){
-                    self.cbGraceful( r );
+                self.cbGraceful( r );
             }
             else
             {
@@ -168,78 +168,78 @@ function Receptor( app, confpath, rootpath )
             }
         };
 	
-	// check application
-        rootpath = pkg.fs.realpathSync( rootpath );
-        if( typeof app.incoming !== 'function' ){
-            throw Error( 'application require method: incoming( r:Object )' );
-	}
-	else if( typeof app.outgoing !== 'function' ){
-            throw Error( 'application require method: outgoing( r:Object, callback:Function )' );
-	}
-	// path resolve
-	if( confpath )
-	{
-            try {
-                confpath = pkg.fs.realpathSync( confpath );
-            }catch(e){
-                e.message = "failed to resolve confpath: " + e.message;
-                throw e;
-            };
-	}
-	// opaque data
-	OPAQUE[id] = {
-            // arguments
-            confpath: confpath,
-            // create server
-            core: pkg.http.createServer(),
-            // number of current connection
-            nconn: 0,
-            // file cache
-            cached: {},
-            // flag use graceful close
-            graceful: false,
-            // original process dir
-            processRoot: rootpath,
-            // config obj
-            conf:{}
-	};
+    // check application
+    rootpath = pkg.fs.realpathSync( rootpath );
+    if( typeof app.incoming !== 'function' ){
+        throw Error( 'application require method: incoming( r:Object )' );
+    }
+    else if( typeof app.outgoing !== 'function' ){
+        throw Error( 'application require method: outgoing( r:Object, callback:Function )' );
+    }
+    // path resolve
+    if( confpath )
+    {
+        try {
+            confpath = pkg.fs.realpathSync( confpath );
+        }catch(e){
+            e.message = "failed to resolve confpath: " + e.message;
+            throw e;
+        };
+    }
+    // opaque data
+    OPAQUE[id] = {
+        // arguments
+        confpath: confpath,
+        // create server
+        core: pkg.http.createServer(),
+        // number of current connection
+        nconn: 0,
+        // file cache
+        cached: {},
+        // flag use graceful close
+        graceful: false,
+        // original process dir
+        processRoot: rootpath,
+        // config obj
+        conf:{}
+    };
 	
-	// confpath
-	this.__defineGetter__('confpath',function(){
-            return confpath;
-	});
-	// rootpath
-	this.__defineGetter__('rootpath',function(){
-            return rootpath;
-	});
-	// id getter
-	this.__defineGetter__('id',function(){
-            return id;
-	});
-	// application getter
-	this.__defineGetter__('app',function(){
-            return app;
-	});
-	// event emitter
-	// this.__defineSetter__('on',function(){
-    	//     OPAQUE[id].evt.on( arguments[0], arguments[1] );
-	// });
-	// defalut graceful response: 503 SERVICE UNAVAILABLE
-	this.cbGraceful = function( r ){
-            r.server.outgoing( r, STATUS.SERVICE_UNAVAILABLE );
-	};
-	
-	// server setup
-	// create and add http request handler
-	OPAQUE[id].core.on( 'request', onRequest );
-	// upgrade
-	// this.core.on( 'upgrade', function( req, sock, head ){ conf.delegate.onUpgrade( req, sock, head ); } );	
-	/*
-	// client socket error
-	this.core.on( 'clientError', function( exception ){ 
-            console.log( 'clientError->exception: ' + exception );
-	});
-	*/
+    // confpath
+    this.__defineGetter__('confpath',function(){
+        return confpath;
+    });
+    // rootpath
+    this.__defineGetter__('rootpath',function(){
+        return rootpath;
+    });
+    // id getter
+    this.__defineGetter__('id',function(){
+        return id;
+    });
+    // application getter
+    this.__defineGetter__('app',function(){
+        return app;
+    });
+    // event emitter
+    // this.__defineSetter__('on',function(){
+    //     OPAQUE[id].evt.on( arguments[0], arguments[1] );
+    // });
+    // defalut graceful response: 503 SERVICE UNAVAILABLE
+    this.cbGraceful = function( r ){
+        r.server.outgoing( r, STATUS.SERVICE_UNAVAILABLE );
+    };
+    
+    // server setup
+    // create and add http request handler
+    OPAQUE[id].core.on( 'request', onRequest );
+    // upgrade
+    // this.core.on( 'upgrade', function( req, sock, head ){ conf.delegate.onUpgrade( req, sock, head ); } );	
+    /*
+    // client socket error
+    this.core.on( 'clientError', function( exception ){ 
+        console.log( 'clientError->exception: ' + exception );
+    });
+    */
 };
 
 Receptor.prototype.listen = function( callback )
