@@ -2,7 +2,7 @@
 	receptor.js
 	author: masatoshi teruya
 	email: mah0x211@gmail.com
-	copyright (C) 2011, masatoshi teruya. all rights reserved.
+	copyright (C) 2011-2012, masatoshi teruya. all rights reserved.
 */
 var pkg = {
         EventEmitter: require('events').EventEmitter,
@@ -94,18 +94,27 @@ function Receptor( app, confpath, rootpath )
         // custom function for http.ServerResponse
         addHeader = function( name, val )
         {
-            var hval = this.getHeader( name );
-            
-            if( hval )
+            if( this.res.socket )
             {
-                if( !( hval instanceof Array ) ){
-                    hval = [hval];
+                var hval = this.res.getHeader( name );
+                
+                if( hval )
+                {
+                    if( !( hval instanceof Array ) ){
+                        hval = [hval];
+                    }
+                    hval.push( val );
+                    this.res.setHeader( name, val );
                 }
-                hval.push( val );
-                this.setHeader.call( this, name, hval );
+                else {
+                    this.res.setHeader( name, val );
+                }
             }
-            else {
-                this.setHeader( name, val );
+        },
+        setHeader = function( name, val )
+        {
+            if( this.res.socket ){
+                this.res.setHeader( name, val );
             }
         },
         onRequest = function( req, res )
@@ -132,10 +141,12 @@ function Receptor( app, confpath, rootpath )
                     mime: undefined,
                     // response page
                     page: '',
+                    // HEADER
+                    addHeader: addHeader,
+                    setHeader: setHeader,
+                    // USERDATA
+                    udata: {}
                 };
-            
-            // append custom function
-            res.addHeader = addHeader;
             
             // server will stop
             if( odata.graceful ){
@@ -348,56 +359,59 @@ Receptor.prototype.outgoing = function( r, status )
 {
     var odata = OPAQUE[this.id];
     
-    // clear timeout
-    clearTimeout( r.timeout );
-    // set status
-    r.status = ( status ) ? status : r.status;
-    // HEAD
-    if( r.req.method === 'HEAD' ){
-        r.res.setHeader( 'Content-Type', odata.conf.DefaultType );
-        r.res.writeHead( r.status );
-        r.res.end();
-    }
-    else
+    if( r.res.socket )
     {
-        var self = this;
-            
-        // if unknown mime type
-        if( !r.mime )
-        {
-            // set by filename
-            if( r.uri.pathfile ){
-                r.mime = pkg.mime.lookup( r.uri.pathfile );
-            }
-            // default type
-            else {
-                r.mime = odata.conf.DefaultType;
-            }
-        }
-        
-        // rendering
-        this.app.outgoing( r, function( err )
-        {
-            if( err ){
-                r.status = STATUS.INTERNAL_SERVER_ERROR;
-                self.ErrorPage( r );
-            }
-            // set content-length
-            r.res.setHeader( 'Content-Length', ( Buffer.isBuffer( r.page ) ) ? r.page.length : Buffer.byteLength( r.page ) );
-            // set content-type
-            r.res.setHeader( 'Content-Type', r.mime );
-            // writeout
+        // clear timeout
+        clearTimeout( r.timeout );
+        // set status
+        r.status = ( status ) ? status : r.status;
+        // HEAD
+        if( r.req.method === 'HEAD' ){
+            r.res.setHeader( 'Content-Type', odata.conf.DefaultType );
             r.res.writeHead( r.status );
-            r.res.end( r.page );
-            // decrement number of connection
-            odata.nconn--;
-            // delete object
-            delete r;
-            // close server if graceful flag is on and no-connection
-            if( odata.graceful && odata.nconn <= 0 ){
-                self.close();
+            r.res.end();
+        }
+        else
+        {
+            var self = this;
+                
+            // if unknown mime type
+            if( !r.mime )
+            {
+                // set by filename
+                if( r.uri.pathfile ){
+                    r.mime = pkg.mime.lookup( r.uri.pathfile );
+                }
+                // default type
+                else {
+                    r.mime = odata.conf.DefaultType;
+                }
             }
-        });
+            
+            // rendering
+            this.app.outgoing( r, function( err )
+            {
+                if( err ){
+                    r.status = STATUS.INTERNAL_SERVER_ERROR;
+                    self.ErrorPage( r );
+                }
+                // set content-length
+                r.res.setHeader( 'Content-Length', ( Buffer.isBuffer( r.page ) ) ? r.page.length : Buffer.byteLength( r.page ) );
+                // set content-type
+                r.res.setHeader( 'Content-Type', r.mime );
+                // writeout
+                r.res.writeHead( r.status );
+                r.res.end( r.page );
+                // decrement number of connection
+                odata.nconn--;
+                // delete object
+                delete r;
+                // close server if graceful flag is on and no-connection
+                if( odata.graceful && odata.nconn <= 0 ){
+                    self.close();
+                }
+            });
+        }
     }
 };
 
@@ -488,7 +502,7 @@ Receptor.prototype.mapToStorage = function( r, callback )
                 case 21:	// EISDIR
                     // set redirect if uri.pathname is not end at slash
                     if( odata.conf.DirectorySlash && !r.uri.resolved ){
-                        r.res.setHeader( 'Location', r.uri.pathname + '/' + ( ( r.uri.search ) ? r.uri.search : '' ) );
+                        r.setHeader( 'Location', r.uri.pathname + '/' + ( ( r.uri.search ) ? r.uri.search : '' ) );
                         status = STATUS.MOVED_PERMANENTLY;
                     }
                     // not found
