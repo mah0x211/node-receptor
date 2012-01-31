@@ -104,7 +104,7 @@ function Receptor( app, confpath, rootpath )
                         hval = [hval];
                     }
                     hval.push( val );
-                    this.res.setHeader( name, val );
+                    this.res.setHeader( name, hval );
                 }
                 else {
                     this.res.setHeader( name, val );
